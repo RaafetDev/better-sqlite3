@@ -5,33 +5,45 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-2019 # Use Windows Server 2019 for better Windows 7 compatibility
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Updated to latest version
 
       - name: Setup Node.js 14 x86
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4 # Updated to latest version
         with:
-          node-version: 14.15.3
+          node-version: 14.21.3 # Latest Node 14 version for stability
           architecture: x86
 
-      - name: Install Python 3.10 (for node-gyp)
+      - name: Install Python (for node-gyp)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.8' # Node 14 is more compatible with Python 3.8
 
-      - name: Install dependencies
+      - name: Install Visual Studio Build Tools
         run: |
-          npm install --global node-gyp@8
-          npm install better-sqlite3@7.6.2 --build-from-source --msvs_version=2022
+          choco install visualstudio2019buildtools --version=16.11.23.0
+          choco install visualstudio2019-workload-vctools --version=1.0.1
+        env:
+          ChocolateyUseWindowsCompression: 'true'
+
+      - name: Install node-gyp and dependencies
+        run: |
+          npm install -g node-gyp@8.4.1 # Specific version for Node 14 compatibility
+          npm config set msvs_version 2019 # Set VS 2019 explicitly
+
+      - name: Install better-sqlite3@7.6.2
+        run: npm install better-sqlite3@7.6.2 --build-from-source --electron-version=11.5.0 # Specify Electron version for ABI compatibility
+        env:
+          npm_config_arch: ia32 # Explicitly set 32-bit architecture
 
       - name: Package .node
         run: |
           mkdir output
           copy node_modules\better-sqlite3\build\Release\better_sqlite3.node output\
-          powershell Compress-Archive -Path output\* -DestinationPath better_sqlite3_win32_node14.zip
+          powershell -Command "Compress-Archive -Path output\* -DestinationPath better_sqlite3_win32_node14.zip"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
