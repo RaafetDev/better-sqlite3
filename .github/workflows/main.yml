@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022 # Switched to windows-2022 due to windows-2019 deprecation
+    runs-on: windows-2022 # Using windows-2022 due to windows-2019 deprecation
 
     steps:
       - name: Checkout repo
@@ -14,7 +14,7 @@ jobs:
       - name: Setup Node.js 14 x86
         uses: actions/setup-node@v4
         with:
-          node-version: 14.21.3 # Latest Node 14 version for stability
+          node-version: 14.15.3 # Updated to specific Node.js version as requested
           architecture: x86
 
       - name: Install Python (for node-gyp)
