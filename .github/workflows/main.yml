@@ -1,33 +1,40 @@
-name: Build better-sqlite3 for Windows x86 Node 14
+name: Build better-sqlite3.node (Win32, Node14)
 
 on:
-  workflow_dispatch: # manual trigger
+  workflow_dispatch:
 
 jobs:
-  build-win32-node14:
+  build:
     runs-on: windows-2022
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup Node 14
+      - name: Setup Node.js 14 x86
         uses: actions/setup-node@v3
         with:
           node-version: 14.15.3
           architecture: x86
 
-      - name: Install dependencies
-        run: npm install better-sqlite3 --build-from-source
+      - name: Install Python 3.10 (for node-gyp)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-      - name: Zip the compiled .node
+      - name: Install dependencies
+        run: |
+          npm install --global node-gyp@8
+          npm install better-sqlite3@7.6.2 --build-from-source --msvs_version=2022
+
+      - name: Package .node
         run: |
           mkdir output
           copy node_modules\better-sqlite3\build\Release\better_sqlite3.node output\
-          powershell Compress-Archive -Path output\* -DestinationPath better_sqlite3_win32_x86_node14.zip
+          powershell Compress-Archive -Path output\* -DestinationPath better_sqlite3_win32_node14.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: better_sqlite3_win32_x86_node14
-          path: better_sqlite3_win32_x86_node14.zip
+          name: better_sqlite3_win32_node14
+          path: better_sqlite3_win32_node14.zip
